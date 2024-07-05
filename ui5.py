@@ -26,11 +26,21 @@ default_prompts = {
     Keep emoji unique to each takeaway item. 
     Please try to use different emojis for each takeaway. Do not render brackets.
     Content: {content}""",
+
     "instagram_post": """
-    I want you to create an Instagram post in {language} based on the Content. 
-    Include relevant hashtags and a catchy caption.
+    Act as if you're a social media expert.
+    I want you to create 5 different Instagram posts in {language} based on the Content. 
+    The thread should be optimised for virality and contain 
+    relevant hashtags and a catchy caption. Stop when you created exactly 5 Posts.
     Content: {content}""",
-    "summary_notes": """
+
+    "tweet_post": """
+    Act as if you're a social media expert. 
+    Give me a 10 tweet thread based on the follwing Content: {content}. 
+    The thread should be optimised for virality and contain 
+    hashtags and emoticons. Each tweet should not exceed 280 characters in length.""",
+
+    "student_summary_notes": """
     I want you to create summary notes in {language} based on the Content. 
     Summarize the key points as if you were taking notes to learn from the content.
     Content: {content}"""
@@ -70,7 +80,7 @@ else:
     language = language_option
 
 # Prompt selection
-prompt_option = st.selectbox("Select task", ["Key Takeaways", "Instagram Post", "Summary Notes", "Custom Prompt"])
+prompt_option = st.selectbox("Select task", ["Key Takeaways", "Instagram Post", "Tweet Post", "Student Notes", "Custom Prompt"])
 
 if prompt_option == "Custom Prompt":
     custom_prompt = st.text_area("Enter your custom prompt", "")
