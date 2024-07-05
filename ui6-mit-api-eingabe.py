@@ -47,10 +47,9 @@ default_prompts = {
 }
 
 # Set up the Streamlit app
-st.title("Content Analysis and Generation App")  # Title of the web app
+st.title("Dario's Marketing-Tools")  # Title of the web app
 st.write("""
-This app analyzes content and generates different outputs using an LLM model. 
-Enter the URL of the content or upload a file, select a task, language, and click the button to generate the output.
+Mit dieser App kann Content aus beliebigen URL's, Videos und Dateien gezogen werden und daraus verschiedene Posts erstellen.
 """)  # Description of the app
 
 # API key input
