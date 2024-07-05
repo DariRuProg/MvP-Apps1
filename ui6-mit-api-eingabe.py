@@ -103,48 +103,53 @@ if api_key:
     if st.button("Generate Output"):
         if url or uploaded_file:  # Check if URL or file is provided
             with st.spinner("Loading content and generating output..."):
-                if url:
-                    # Load content from the provided URL
-                    content = load_content(url).content
-                elif uploaded_file:
-                    # Load content from the uploaded file
-                    content = load_file_content(uploaded_file)
+                try:
+                    if url:
+                        # Load content from the provided URL
+                        content = load_content(url).content
+                    elif uploaded_file:
+                        # Load content from the uploaded file
+                        content = load_file_content(uploaded_file)
 
-                # Split content into manageable chunks
-                chunk_size = calculate_chunk_size(max_tokens)
-                chunks = split_content(content, chunk_size)
+                    # Split content into manageable chunks
+                    chunk_size = calculate_chunk_size(max_tokens)
+                    chunks = split_content(content, chunk_size)
 
-                # Initialize the LLM instance with OpenAI provider and specific model
-                llm_instance = LLM.create(provider=LLMProvider.OPENAI, model_name=model_option)
-                
-                # Set the API key for the LLM instance if needed
-                llm_instance.api_key = api_key
-
-                # Initialize an empty list to store results from each chunk
-                all_outputs = []
-
-                # Process each chunk individually
-                for chunk in chunks:
-                    # Replace placeholder with actual content in the user-defined prompt
-                    formatted_prompt = prompt.format(content=chunk)
+                    # Initialize the LLM instance with OpenAI provider and specific model
+                    llm_instance = LLM.create(provider=LLMProvider.OPENAI, model_name=model_option)
                     
-                    # Generate the output using the LLM instance
-                    generated_text = llm_instance.generate_response(prompt=formatted_prompt)
+                    # Set the API key for the LLM instance if needed
+                    llm_instance.api_key = api_key
+
+                    # Initialize an empty list to store results from each chunk
+                    all_outputs = []
+
+                    # Process each chunk individually
+                    for i, chunk in enumerate(chunks):
+                        # Replace placeholder with actual content in the user-defined prompt
+                        formatted_prompt = prompt.format(content=chunk)
+                        
+                        # Generate the output using the LLM instance
+                        generated_text = llm_instance.generate_response(prompt=formatted_prompt)
+                        
+                        # Append the result to the list of all outputs
+                        all_outputs.append(generated_text)
                     
-                    # Append the result to the list of all outputs
-                    all_outputs.append(generated_text)
-                
-                # Combine all outputs into a single string
-                combined_output = "\n".join(all_outputs)
-                
-                # Display the generated output
-                st.subheader("Generated Output:")
-                st.write(combined_output)
-                
-                # Add a copy button for the output
-                st.button("Copy to Clipboard", on_click=lambda: st.write(st.code(combined_output, language='markdown')))
-                # Option to download the output as a file
-                st.download_button("Download as TXT", combined_output, file_name="generated_output.txt")
+                    # Combine all outputs into a single string
+                    combined_output = "\n".join(all_outputs)
+                    
+                    # Display the generated output
+                    st.subheader("Generated Output:")
+                    st.write(combined_output)
+                    
+                    # Add a copy button for the output
+                    st.button("Copy to Clipboard", on_click=lambda: st.write(st.code(combined_output, language='markdown')))
+                    # Option to download the output as a file
+                    st.download_button("Download as TXT", combined_output, file_name="generated_output.txt")
+
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+                    st.stop()
         else:
             st.error("Please enter a valid URL or upload a file.")  # Display an error if neither URL nor file is provided
 else:
