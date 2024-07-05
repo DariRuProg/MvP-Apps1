@@ -18,7 +18,7 @@ def calculate_chunk_size(max_tokens, prompt_tokens=1000):
 
 # Default prompts for different tasks
 default_prompts = {
-    "key_takeaways": """
+    "Key Takeaways": """
     I want you to only answer in {language}. 
     Please extract key takeaways of the Content. 
     Each key takeaway should be a list item, of the following format:
@@ -27,20 +27,20 @@ default_prompts = {
     Please try to use different emojis for each takeaway. Do not render brackets.
     Content: {content}""",
 
-    "instagram_post": """
+    "Instagram Post": """
     Act as if you're a social media expert.
     I want you to create 5 different Instagram posts in {language} based on the Content. 
     The thread should be optimised for virality and contain 
     relevant hashtags and a catchy caption. Stop when you created exactly 5 Posts.
     Content: {content}""",
 
-    "tweet_post": """
+    "Tweet Post": """
     Act as if you're a social media expert. 
     Give me a 10 tweet thread based on the follwing Content: {content}. 
     The thread should be optimised for virality and contain 
     hashtags and emoticons. Each tweet should not exceed 280 characters in length.""",
 
-    "student_summary_notes": """
+    "Student Notes": """
     I want you to create summary notes in {language} based on the Content. 
     Summarize the key points as if you were taking notes to learn from the content.
     Content: {content}"""
@@ -103,53 +103,52 @@ if api_key:
     if st.button("Generate Output"):
         if url or uploaded_file:  # Check if URL or file is provided
             with st.spinner("Loading content and generating output..."):
-                try:
-                    if url:
-                        # Load content from the provided URL
-                        content = load_content(url).content
-                    elif uploaded_file:
-                        # Load content from the uploaded file
-                        content = load_file_content(uploaded_file)
+                if url:
+                    # Load content from the provided URL
+                    content = load_content(url).content
+                elif uploaded_file:
+                    # Load content from the uploaded file
+                    content = load_file_content(uploaded_file)
 
-                    # Split content into manageable chunks
-                    chunk_size = calculate_chunk_size(max_tokens)
-                    chunks = split_content(content, chunk_size)
+                # Split content into manageable chunks
+                chunk_size = calculate_chunk_size(max_tokens)
+                chunks = split_content(content, chunk_size)
 
-                    # Initialize the LLM instance with OpenAI provider and specific model
-                    llm_instance = LLM.create(provider=LLMProvider.OPENAI, model_name=model_option)
+                # Initialize the LLM instance with OpenAI provider and specific model
+                llm_instance = LLM.create(provider=LLMProvider.OPENAI, model_name=model_option)
+                llm_instance.api_key = api_key  # Set the API key
+
+                # Initialize an empty list to store results from each chunk
+                all_outputs = []
+
+                # Process each chunk individually
+                for i, chunk in enumerate(chunks):
+                    # Replace placeholder with actual content in the user-defined prompt
+                    formatted_prompt = prompt.format(content=chunk)
                     
-                    # Set the API key for the LLM instance if needed
-                    llm_instance.api_key = api_key
-
-                    # Initialize an empty list to store results from each chunk
-                    all_outputs = []
-
-                    # Process each chunk individually
-                    for i, chunk in enumerate(chunks):
-                        # Replace placeholder with actual content in the user-defined prompt
-                        formatted_prompt = prompt.format(content=chunk)
-                        
-                        # Generate the output using the LLM instance
-                        generated_text = llm_instance.generate_response(prompt=formatted_prompt)
-                        
-                        # Append the result to the list of all outputs
-                        all_outputs.append(generated_text)
+                    # Generate the output using the LLM instance
+                    generated_text = llm_instance.generate_response(prompt=formatted_prompt)
                     
-                    # Combine all outputs into a single string
-                    combined_output = "\n".join(all_outputs)
+                    # If the generated text seems to be cut off, continue generating text
+                    while not generated_text.endswith(('.', '!', '?')) and i < len(chunks) - 1:
+                        next_chunk = chunks[i + 1]
+                        formatted_prompt = prompt.format(content=next_chunk)
+                        generated_text += llm_instance.generate_response(prompt=formatted_prompt)
                     
-                    # Display the generated output
-                    st.subheader("Generated Output:")
-                    st.write(combined_output)
-                    
-                    # Add a copy button for the output
-                    st.button("Copy to Clipboard", on_click=lambda: st.write(st.code(combined_output, language='markdown')))
-                    # Option to download the output as a file
-                    st.download_button("Download as TXT", combined_output, file_name="generated_output.txt")
-
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-                    st.stop()
+                    # Append the result to the list of all outputs
+                    all_outputs.append(generated_text)
+                
+                # Combine all outputs into a single string
+                combined_output = "\n".join(all_outputs)
+                
+                # Display the generated output
+                st.subheader("Generated Output:")
+                st.write(combined_output)
+                
+                # Add a copy button for the output
+                st.button("Copy to Clipboard", on_click=lambda: st.write(st.code(combined_output, language='markdown')))
+                # Option to download the output as a file
+                st.download_button("Download as TXT", combined_output, file_name="generated_output.txt")
         else:
             st.error("Please enter a valid URL or upload a file.")  # Display an error if neither URL nor file is provided
 else:
